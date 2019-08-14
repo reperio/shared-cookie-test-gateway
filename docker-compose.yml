@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  api1:
+    build:
+      context: .
+      dockerfile: ./server/docker/app/Dockerfile
+    volumes:
+      - ./server:/opt/app
+      - /opt/app/node_modules
+    networks:
+      - local
+    command: ["docker/app/start.sh"]
+  api2:
+    build:
+      context: .
+      dockerfile: ./server/docker/app/Dockerfile
+    volumes:
+      - ./server:/opt/app
+      - /opt/app/node_modules
+    networks:
+      - local
+    command: ["docker/app/start.sh"]
+  gateway:
+    image: haproxy
+    ports: 
+      - "80:80"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - local
+  app1:
+    build:
+      context: .
+      dockerfile: ./client/docker/app/Dockerfile
+    environment:
+      - API_URL=http://api1.sharedcookietest.com
+    volumes:
+      - ./client:/opt/app
+      - /opt/app/node_modules
+      - /opt/app/dist
+    command: ["docker/app/start.sh"]
+    networks:
+      - local
+  app2:
+    build:
+      context: .
+      dockerfile: ./client/docker/app/Dockerfile
+    environment:
+      - API_URL=http://api2.sharedcookietest.com
+    volumes:
+      - ./client:/opt/app
+      - /opt/app/node_modules
+      - /opt/app/dist
+    command: ["docker/app/start.sh"]
+    networks:
+      - local
+
+networks:
+  local:
